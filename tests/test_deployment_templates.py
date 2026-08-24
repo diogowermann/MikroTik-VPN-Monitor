@@ -33,6 +33,8 @@ def test_nginx_template_exposes_only_exact_ingestion_routes():
     assert "limit_except POST" in nginx
     assert "location / {\n        return 404;\n    }" in nginx
     assert "/api/v1/health" not in nginx
+    assert "/api/v1/query/" not in nginx
+    assert "/api/v1/alerts/" not in nginx
 
 
 def test_production_environment_keeps_api_on_loopback_and_database_in_state_dir():

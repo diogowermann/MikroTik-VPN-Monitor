@@ -5,6 +5,7 @@ from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.database import get_db
 from app.models import Router, RouterCredential
 from app.timeutils import utc_now
@@ -68,3 +69,21 @@ def authenticate_router(
     router.last_seen_at = now
     db.commit()
     return router
+
+
+def authenticate_query_api(
+    query_api_key: str | None = Header(default=None, alias="X-API-Key"),
+) -> None:
+    """Require the locally configured read-only API key for query endpoints."""
+    configured_key = get_settings().query_api_key
+    if not configured_key:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="query API is not configured",
+        )
+
+    if not query_api_key or not hmac.compare_digest(query_api_key, configured_key):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid query API key",
+        )
