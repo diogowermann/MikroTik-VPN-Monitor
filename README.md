@@ -36,26 +36,29 @@ The API itself is intended to bind to loopback. A reverse proxy may expose only 
 
 ## Repository status
 
-**Domain and persistence foundation.**
+**Authenticated lifecycle ingestion.**
 
 The current implementation provides:
 
 - a versioned FastAPI application under `/api/v1`;
 - `GET /api/v1/health`;
-- environment-driven runtime configuration;
-- SQLAlchemy models for routers, hashed router credentials, configurable sources, immutable VPN events and consolidated VPN sessions;
-- Alembic migration management with an initial SQLite-compatible schema;
-- persisted source selectors for multiple services, profiles and interfaces;
-- UTC timestamp helpers and high-entropy router-secret hashing;
-- automated model/migration tests and GitHub Actions CI on Python 3.11 and 3.12.
+- SQLAlchemy/Alembic persistence for routers, hashed credentials, configurable sources, immutable VPN events and consolidated VPN sessions;
+- administrative router registration and credential rotation utilities;
+- per-router bearer authentication using `X-Router-ID` plus a high-entropy secret;
+- `POST /api/v1/router/events` for contract-v1 `CONNECT` and `DISCONNECT` events;
+- exact-replay idempotency and conflict detection when an `event_id` is reused with different content;
+- event-driven `ACTIVE` / `CLOSED` session projection with interface-aware disconnect correlation;
+- source/service validation and explicit timezone validation;
+- automated model, migration, authentication and ingestion tests with GitHub Actions on Python 3.11 and 3.12.
 
-The next implementation stage adds router registration and credential rotation, authenticated ingestion, event contract validation and idempotent `CONNECT` / `DISCONNECT` processing. Snapshot reconciliation follows after lifecycle ingestion is validated.
+The next implementation stage adds periodic `/ppp active` snapshot ingestion and reconciliation so current state can recover from missed lifecycle events. RouterOS hook/scheduler templates and deployment packaging follow after the central contracts are validated.
 
 ## Documentation
 
 - [Documentation index](docs/README.md)
 - [System architecture](docs/system-architecture.md)
 - [Persistence model](docs/persistence-model.md)
+- [Router registration and event ingestion](docs/router-ingestion.md)
 
 ## Public repository boundary
 
