@@ -20,7 +20,7 @@ def test_initial_migration_creates_and_drops_domain_schema(tmp_path):
     assert {"routers", "router_credentials", "sources", "vpn_events", "vpn_sessions"} <= tables
 
     source_columns = {column["name"] for column in inspector.get_columns("sources")}
-    assert {"services", "profiles", "interfaces"} <= source_columns
+    assert {"services", "profiles", "interfaces", "last_snapshot_at"} <= source_columns
 
     event_uniques = {
         constraint.get("name") for constraint in inspector.get_unique_constraints("vpn_events")

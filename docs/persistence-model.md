@@ -1,10 +1,10 @@
 # Persistence model
 
-This document defines the first persisted domain model for MikroTik VPN Monitor. The model is intentionally infrastructure-agnostic and supports multiple routers and multiple configurable VPN sources without coupling the service to one PPP profile.
+This document defines the persisted domain model for MikroTik VPN Monitor. The model is intentionally infrastructure-agnostic and supports multiple routers and multiple configurable VPN sources without coupling the service to one PPP profile.
 
 ## Goals
 
-The persistence layer must support four concerns independently:
+The persistence layer supports four concerns independently:
 
 1. register monitored RouterOS devices without storing plaintext ingestion secrets;
 2. define which PPP contexts belong to monitoring through configurable sources;
@@ -49,6 +49,7 @@ erDiagram
         json services
         json profiles
         json interfaces
+        datetime last_snapshot_at
     }
 
     VPN_EVENTS {
@@ -81,9 +82,9 @@ erDiagram
 
 Operational timestamps are intentionally separate:
 
-- `last_seen_at` tracks the most recent accepted ingestion activity;
-- `last_snapshot_at` tracks the most recent successful current-state snapshot;
-- `last_boot_id` is reserved for router generation/reboot correlation.
+- `last_seen_at` tracks the most recent authenticated ingestion activity;
+- `last_snapshot_at` tracks the newest accepted snapshot timestamp across all sources on the router;
+- `last_boot_id` tracks the most recently accepted boot/generation identifier when supplied.
 
 The API can disable a router without deleting its historical telemetry.
 
@@ -91,15 +92,15 @@ The API can disable a router without deleting its historical telemetry.
 
 `router_credentials` contains ingestion credential metadata.
 
-Only a SHA-256 hash of a high-entropy bearer secret is persisted. Plaintext router secrets are generated/provisioned outside the database and must never be written to logs or committed to the repository.
+Only a SHA-256 hash of a high-entropy bearer secret is persisted. Plaintext router secrets are returned only during provisioning/rotation and must never be written to logs or committed to the repository.
 
-Credential lifecycle fields support later rotation:
+Credential lifecycle fields support rotation and operational visibility:
 
 - `created_at`;
 - `last_used_at`;
 - `revoked_at`.
 
-Authentication and rotation workflows are implemented in the next phase.
+A rotated credential is revoked immediately and no longer authenticates lifecycle or snapshot ingestion.
 
 ## Sources
 
@@ -112,6 +113,8 @@ Each source belongs to one router and has a unique `name` within that router. Se
 - `interfaces` - optional interface identifiers or patterns used by the collection contract.
 
 An empty selector list means that dimension is not used to narrow the source. The source may be kept with `enabled=false` until a profile/interface is intentionally added to monitoring.
+
+`last_snapshot_at` is persisted per source. This prevents snapshot ordering for one profile/interface source from invalidating a legitimate snapshot for another source on the same router.
 
 Example only:
 
@@ -131,7 +134,7 @@ No production profile names belong in the public repository.
 
 `vpn_events` stores immutable lifecycle observations.
 
-The database enforces uniqueness of `external_event_id` per router. This is the persistence-level foundation for idempotent event ingestion; API replay behavior is implemented separately.
+The database enforces uniqueness of `external_event_id` per router. This is the persistence-level foundation for idempotent event ingestion. Exact replays are acknowledged without creating duplicate event/session state, while reusing an identifier with different content is rejected as a conflict.
 
 Important timestamps:
 
@@ -140,11 +143,13 @@ Important timestamps:
 
 The initial event domain is `CONNECT` and `DISCONNECT`.
 
+Snapshots do not create synthetic lifecycle event rows. Reconciled session state remains distinguishable from immutable event history.
+
 ## VPN sessions
 
 `vpn_sessions` is the consolidated projection consumed by future query endpoints and Grafana.
 
-The initial session state model is:
+The session state model is:
 
 ```text
 ACTIVE -> CLOSED
@@ -155,7 +160,13 @@ A session can originate from:
 - `EVENT` - created from a lifecycle event;
 - `RECONCILIATION` - discovered from an active-session snapshot.
 
-The schema already reserves fields needed by reconciliation and reboot handling, including `router_session_id`, `last_observed_at`, `router_boot_id`, `duration_seconds`, and `end_reason`.
+Reconciliation and reboot handling use `router_session_id`, `last_observed_at`, `router_boot_id`, `duration_seconds`, and `end_reason`.
+
+Current end reasons include:
+
+- `DISCONNECT` - closed by a lifecycle event;
+- `RECONCILIATION` - absent from a newer accepted source snapshot;
+- `ROUTER_REBOOT` - invalidated when the router boot identifier changes.
 
 ## Indexing strategy
 
@@ -188,6 +199,8 @@ alembic downgrade base
 ```
 
 Production deployment should apply migrations before the application process starts.
+
+The second schema revision adds per-source `last_snapshot_at` state required for safe multi-source reconciliation ordering.
 
 ## Public repository boundary
 

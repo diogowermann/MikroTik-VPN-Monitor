@@ -3,9 +3,10 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Router
-from app.schemas import EventIngestResult, RouterEvent
+from app.schemas import EventIngestResult, RouterEvent, RouterSnapshot, SnapshotIngestResult
 from app.security import authenticate_router
 from app.services.events import EventConflictError, EventValidationError, process_event
+from app.services.snapshots import SnapshotValidationError, process_snapshot
 
 router = APIRouter(prefix="/router", tags=["router-ingestion"])
 
@@ -34,4 +35,30 @@ def ingest_router_event(
         duplicates=result.duplicates,
         event_id=result.event_id,
         session_action=result.session_action,
+    )
+
+
+@router.post("/snapshot", response_model=SnapshotIngestResult)
+def ingest_router_snapshot(
+    snapshot: RouterSnapshot,
+    authenticated_router: Router = Depends(authenticate_router),
+    db: Session = Depends(get_db),
+) -> SnapshotIngestResult:
+    try:
+        result = process_snapshot(db, router=authenticated_router, snapshot=snapshot)
+    except SnapshotValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+
+    return SnapshotIngestResult(
+        accepted=result.accepted,
+        stale=result.stale,
+        source_id=result.source_id,
+        observed_sessions=result.observed_sessions,
+        created=result.created,
+        refreshed=result.refreshed,
+        closed=result.closed,
+        reboot_closed=result.reboot_closed,
     )
