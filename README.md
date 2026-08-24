@@ -36,23 +36,26 @@ The API itself is intended to bind to loopback. A reverse proxy may expose only 
 
 ## Repository status
 
-**Architecture and implementation bootstrap.**
+**Domain and persistence foundation.**
 
-The current scaffold provides:
+The current implementation provides:
 
 - a versioned FastAPI application under `/api/v1`;
 - `GET /api/v1/health`;
 - environment-driven runtime configuration;
-- SQLAlchemy database foundation;
-- Python 3.11+ packaging and development dependencies;
-- automated tests and GitHub Actions CI.
+- SQLAlchemy models for routers, hashed router credentials, configurable sources, immutable VPN events and consolidated VPN sessions;
+- Alembic migration management with an initial SQLite-compatible schema;
+- persisted source selectors for multiple services, profiles and interfaces;
+- UTC timestamp helpers and high-entropy router-secret hashing;
+- automated model/migration tests and GitHub Actions CI on Python 3.11 and 3.12.
 
-The next implementation stages add domain models, Alembic migrations, router registration/authentication, idempotent event ingestion and snapshot reconciliation.
+The next implementation stage adds router registration and credential rotation, authenticated ingestion, event contract validation and idempotent `CONNECT` / `DISCONNECT` processing. Snapshot reconciliation follows after lifecycle ingestion is validated.
 
 ## Documentation
 
 - [Documentation index](docs/README.md)
 - [System architecture](docs/system-architecture.md)
+- [Persistence model](docs/persistence-model.md)
 
 ## Public repository boundary
 
