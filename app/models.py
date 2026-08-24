@@ -74,6 +74,7 @@ class Source(Base):
     services: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     profiles: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     interfaces: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    last_snapshot_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=False), nullable=False, default=utc_now, onupdate=utc_now

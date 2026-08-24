@@ -36,22 +36,24 @@ The API itself is intended to bind to loopback. A reverse proxy may expose only 
 
 ## Repository status
 
-**Authenticated lifecycle ingestion.**
+**Lifecycle ingestion and snapshot reconciliation.**
 
 The current implementation provides:
 
 - a versioned FastAPI application under `/api/v1`;
 - `GET /api/v1/health`;
 - SQLAlchemy/Alembic persistence for routers, hashed credentials, configurable sources, immutable VPN events and consolidated VPN sessions;
-- administrative router registration and credential rotation utilities;
+- administrative router registration, source provisioning and credential rotation utilities;
 - per-router bearer authentication using `X-Router-ID` plus a high-entropy secret;
 - `POST /api/v1/router/events` for contract-v1 `CONNECT` and `DISCONNECT` events;
 - exact-replay idempotency and conflict detection when an `event_id` is reused with different content;
-- event-driven `ACTIVE` / `CLOSED` session projection with interface-aware disconnect correlation;
-- source/service validation and explicit timezone validation;
-- automated model, migration, authentication and ingestion tests with GitHub Actions on Python 3.11 and 3.12.
+- `POST /api/v1/router/snapshot` for contract-v1 current-state reconciliation;
+- per-source snapshot ordering so multiple profiles/interfaces can be reconciled independently;
+- recovery of missed CONNECTs, closure of missed DISCONNECTs and router-wide reboot handling when a boot identifier changes;
+- temporal protection against delayed snapshots closing newer sessions;
+- automated model, migration, authentication, lifecycle and reconciliation tests with GitHub Actions on Python 3.11 and 3.12.
 
-The next implementation stage adds periodic `/ppp active` snapshot ingestion and reconciliation so current state can recover from missed lifecycle events. RouterOS hook/scheduler templates and deployment packaging follow after the central contracts are validated.
+The next implementation stage adds sanitized RouterOS lifecycle-hook and `/ppp active` scheduler templates, followed by Linux deployment packaging and local query endpoints for Grafana.
 
 ## Documentation
 
@@ -59,6 +61,7 @@ The next implementation stage adds periodic `/ppp active` snapshot ingestion and
 - [System architecture](docs/system-architecture.md)
 - [Persistence model](docs/persistence-model.md)
 - [Router registration and event ingestion](docs/router-ingestion.md)
+- [Snapshot ingestion and reconciliation](docs/snapshot-reconciliation.md)
 
 ## Public repository boundary
 
