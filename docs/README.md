@@ -9,10 +9,10 @@ This directory contains the public technical documentation for MikroTik VPN Moni
 - [Router registration and event ingestion](router-ingestion.md) — provisioning, secret rotation, request authentication, contract v1, idempotency and CONNECT/DISCONNECT session projection.
 - [Snapshot ingestion and reconciliation](snapshot-reconciliation.md) — `/ppp active` contract, per-source ordering, missing-event recovery, reboot handling and reconciliation semantics.
 - [RouterOS integration](routeros-integration.md) — lifecycle hooks, shared credential/senders, profile-aware snapshots, TLS, retries and rollout sequence.
+- [Linux installation and deployment](installation.md) — system user, virtualenv, SQLite state, systemd, Nginx ingestion boundary, updates and rollout order.
 
 Additional implementation guides will be added as the project progresses:
 
-- installation and Linux service management;
 - Grafana dashboards and alerting;
 - operational troubleshooting and upgrades.
 

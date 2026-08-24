@@ -1,0 +1,41 @@
+[Unit]
+Description=MikroTik VPN Monitor API
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=@APP_USER@
+Group=@APP_GROUP@
+WorkingDirectory=@APP_ROOT@
+EnvironmentFile=@ENV_FILE@
+StateDirectory=mikrotik-vpn-monitor
+StateDirectoryMode=0750
+ExecStartPre=@APP_ROOT@/.venv/bin/alembic -c @APP_ROOT@/alembic.ini upgrade head
+ExecStart=@APP_ROOT@/.venv/bin/mikrotik-vpn-monitor
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=30s
+TimeoutStopSec=15s
+UMask=0027
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

@@ -21,7 +21,7 @@ flowchart LR
     Grafana["Grafana"] -->|local read API| API
 ```
 
-The API itself is intended to bind to loopback. A reverse proxy may expose only the authenticated ingestion routes required by monitored routers, while Grafana consumes read endpoints locally.
+The API binds to loopback in the supported Linux deployment. Nginx exposes only the authenticated RouterOS ingestion routes, while Grafana and local administration use the loopback API directly.
 
 ## Design goals
 
@@ -36,7 +36,7 @@ The API itself is intended to bind to loopback. A reverse proxy may expose only 
 
 ## Repository status
 
-**Central ingestion, reconciliation and RouterOS templates.**
+**Central ingestion, reconciliation, RouterOS integration and Linux deployment.**
 
 The current implementation provides:
 
@@ -53,9 +53,14 @@ The current implementation provides:
 - temporal protection against delayed snapshots closing newer sessions;
 - sanitized RouterOS templates for shared configuration, PPP lifecycle hooks, authenticated HTTPS delivery and scheduled `/ppp active` snapshots;
 - profile-aware snapshot filtering for locally defined PPP identities;
-- automated model, migration, authentication, lifecycle, reconciliation and RouterOS-template tests with GitHub Actions on Python 3.11 and 3.12.
+- a production console entrypoint driven by environment settings;
+- file-backed SQLite configured with WAL, foreign-key enforcement and a lock wait timeout;
+- a hardened systemd unit with automatic Alembic migration before startup;
+- an idempotent Linux installer that preserves existing runtime configuration;
+- an ingestion-only Nginx template that exposes only the two RouterOS POST routes;
+- automated model, migration, authentication, lifecycle, reconciliation, RouterOS-template and deployment tests with GitHub Actions on Python 3.11 and 3.12.
 
-The next implementation stage packages Linux/systemd/reverse-proxy deployment, followed by local query endpoints and Grafana dashboards/alerting.
+The next implementation stage adds local read/query endpoints for Grafana dashboards and alerting, followed by controlled end-to-end validation on the deployed Linux host and RouterOS device.
 
 ## Documentation
 
@@ -66,6 +71,7 @@ The next implementation stage packages Linux/systemd/reverse-proxy deployment, f
 - [Snapshot ingestion and reconciliation](docs/snapshot-reconciliation.md)
 - [RouterOS integration](docs/routeros-integration.md)
 - [RouterOS template guide](routeros/README.md)
+- [Linux installation and deployment](docs/installation.md)
 
 ## Public repository boundary
 
@@ -89,12 +95,12 @@ Documentation and examples must use fictitious values such as `vpn-api.example.c
 MikroTik-VPN-Monitor/
 ├── app/                 # FastAPI application and domain logic
 ├── alembic/             # Database migrations
-├── deploy/              # Generic service/reverse-proxy templates
+├── deploy/              # Generic systemd/environment/Nginx templates
 ├── docs/                # Architecture, installation, RouterOS and Grafana docs
 ├── routeros/            # Sanitized RouterOS scripts/templates
-├── scripts/             # Administrative helpers
+├── scripts/             # Administrative and Linux deployment helpers
 ├── tests/               # Automated tests
-├── .env.example         # Placeholder-only configuration reference
+├── .env.example         # Placeholder-only development configuration reference
 └── pyproject.toml
 ```
 
