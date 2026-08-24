@@ -1,0 +1,19 @@
+# MikroTik VPN Monitor documentation
+
+This directory contains the public technical documentation for MikroTik VPN Monitor.
+
+## Documents
+
+- [System architecture](system-architecture.md) — components, trust boundaries, sources, event flow, snapshot reconciliation and planned data model.
+
+Additional implementation guides will be added as the project progresses:
+
+- installation and Linux service management;
+- RouterOS event hooks and snapshot scheduler;
+- API reference and authentication;
+- Grafana dashboards and alerting;
+- operational troubleshooting and upgrades.
+
+## Public documentation policy
+
+Examples in this repository must remain infrastructure-agnostic. Use fictitious hostnames, users and documentation network ranges only. Never add real credentials, internal DNS names, private/public production addresses, certificate material, RouterOS exports or captured VPN telemetry.

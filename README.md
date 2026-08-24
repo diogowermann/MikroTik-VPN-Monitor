@@ -38,7 +38,21 @@ The API itself is intended to bind to loopback. A reverse proxy may expose only 
 
 **Architecture and implementation bootstrap.**
 
-The first implementation target is a versioned FastAPI service with SQLAlchemy/Alembic persistence, RouterOS event and snapshot scripts, systemd deployment, tests, and Grafana integration documentation.
+The current scaffold provides:
+
+- a versioned FastAPI application under `/api/v1`;
+- `GET /api/v1/health`;
+- environment-driven runtime configuration;
+- SQLAlchemy database foundation;
+- Python 3.11+ packaging and development dependencies;
+- automated tests and GitHub Actions CI.
+
+The next implementation stages add domain models, Alembic migrations, router registration/authentication, idempotent event ingestion and snapshot reconciliation.
+
+## Documentation
+
+- [Documentation index](docs/README.md)
+- [System architecture](docs/system-architecture.md)
 
 ## Public repository boundary
 
@@ -73,4 +87,4 @@ MikroTik-VPN-Monitor/
 
 ## License
 
-A project license will be added during the repository bootstrap phase.
+Released under the [MIT License](LICENSE).
