@@ -18,7 +18,7 @@ flowchart LR
     Router -->|"PPP active snapshot\nHTTPS POST"| Proxy
     Proxy --> API["VPN Monitor API"]
     API --> DB[("SQLite")]
-    Grafana["Grafana"] -->|local read API| API
+    Grafana["Grafana"] -->|"local query API\nX-API-Key"| API
 ```
 
 The API binds to loopback in the supported Linux deployment. Nginx exposes only the authenticated RouterOS ingestion routes, while Grafana and local administration use the loopback API directly.
@@ -36,7 +36,7 @@ The API binds to loopback in the supported Linux deployment. Nginx exposes only 
 
 ## Repository status
 
-**Central ingestion, reconciliation, RouterOS integration and Linux deployment.**
+**End-to-end application surface complete; deployment validation remains.**
 
 The current implementation provides:
 
@@ -58,9 +58,11 @@ The current implementation provides:
 - a hardened systemd unit with automatic Alembic migration before startup;
 - an idempotent Linux installer that preserves existing runtime configuration;
 - an ingestion-only Nginx template that exposes only the two RouterOS POST routes;
-- automated model, migration, authentication, lifecycle, reconciliation, RouterOS-template and deployment tests with GitHub Actions on Python 3.11 and 3.12.
+- read-only `X-API-Key` protected query endpoints for overall, session, router, source and user views;
+- an event-based VPN logon feed designed for multi-dimensional Grafana alerting;
+- automated model, migration, authentication, lifecycle, reconciliation, RouterOS-template, deployment and query-API tests with GitHub Actions on Python 3.11 and 3.12.
 
-The next implementation stage adds local read/query endpoints for Grafana dashboards and alerting, followed by controlled end-to-end validation on the deployed Linux host and RouterOS device.
+The next implementation stage is controlled end-to-end deployment validation: install the service, provision a router/source, validate RouterOS templates, exercise CONNECT/snapshot/DISCONNECT flows and then build the initial Grafana dashboard/alert rule against the local API.
 
 ## Documentation
 
@@ -72,6 +74,7 @@ The next implementation stage adds local read/query endpoints for Grafana dashbo
 - [RouterOS integration](docs/routeros-integration.md)
 - [RouterOS template guide](routeros/README.md)
 - [Linux installation and deployment](docs/installation.md)
+- [Grafana query API and alerting](docs/grafana.md)
 
 ## Public repository boundary
 
