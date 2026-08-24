@@ -7,9 +7,9 @@ The project is designed around two complementary data sources:
 - **PPP lifecycle events** (`on-up` / `on-down`) for durable connection history;
 - **PPP active-session snapshots** for reconciliation of current state when an event is missed.
 
-The central service will receive RouterOS data over authenticated HTTPS, persist immutable events and consolidated VPN sessions, and expose read-only query endpoints intended to remain local to the monitoring host.
+The central service receives RouterOS data over authenticated HTTPS, persists immutable events and consolidated VPN sessions, and exposes read-only query endpoints intended to remain local to the monitoring host.
 
-## Planned architecture
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -36,7 +36,7 @@ The API itself is intended to bind to loopback. A reverse proxy may expose only 
 
 ## Repository status
 
-**Lifecycle ingestion and snapshot reconciliation.**
+**Central ingestion, reconciliation and RouterOS templates.**
 
 The current implementation provides:
 
@@ -49,11 +49,13 @@ The current implementation provides:
 - exact-replay idempotency and conflict detection when an `event_id` is reused with different content;
 - `POST /api/v1/router/snapshot` for contract-v1 current-state reconciliation;
 - per-source snapshot ordering so multiple profiles/interfaces can be reconciled independently;
-- recovery of missed CONNECTs, closure of missed DISCONNECTs and router-wide reboot handling when a boot identifier changes;
+- recovery of missed CONNECTs, closure of missed DISCONNECTs and router-wide reboot handling when a boot identifier is supplied;
 - temporal protection against delayed snapshots closing newer sessions;
-- automated model, migration, authentication, lifecycle and reconciliation tests with GitHub Actions on Python 3.11 and 3.12.
+- sanitized RouterOS templates for shared configuration, PPP lifecycle hooks, authenticated HTTPS delivery and scheduled `/ppp active` snapshots;
+- profile-aware snapshot filtering for locally defined PPP identities;
+- automated model, migration, authentication, lifecycle, reconciliation and RouterOS-template tests with GitHub Actions on Python 3.11 and 3.12.
 
-The next implementation stage adds sanitized RouterOS lifecycle-hook and `/ppp active` scheduler templates, followed by Linux deployment packaging and local query endpoints for Grafana.
+The next implementation stage packages Linux/systemd/reverse-proxy deployment, followed by local query endpoints and Grafana dashboards/alerting.
 
 ## Documentation
 
@@ -62,6 +64,8 @@ The next implementation stage adds sanitized RouterOS lifecycle-hook and `/ppp a
 - [Persistence model](docs/persistence-model.md)
 - [Router registration and event ingestion](docs/router-ingestion.md)
 - [Snapshot ingestion and reconciliation](docs/snapshot-reconciliation.md)
+- [RouterOS integration](docs/routeros-integration.md)
+- [RouterOS template guide](routeros/README.md)
 
 ## Public repository boundary
 
