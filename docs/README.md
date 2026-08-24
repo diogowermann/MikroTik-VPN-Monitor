@@ -4,7 +4,8 @@ This directory contains the public technical documentation for MikroTik VPN Moni
 
 ## Documents
 
-- [System architecture](system-architecture.md) — components, trust boundaries, sources, event flow, snapshot reconciliation and planned data model.
+- [System architecture](system-architecture.md) — components, trust boundaries, sources, event flow, snapshot reconciliation and overall data model.
+- [Persistence model](persistence-model.md) — routers, credential storage, configurable sources, immutable events, consolidated sessions, indexes and Alembic migrations.
 
 Additional implementation guides will be added as the project progresses:
 
